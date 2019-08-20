@@ -1,0 +1,138 @@
+---
+title: "rodent_ecoregion"
+author: "Tao Huang"
+date: "August 15, 2019"
+output: html_document
+---
+
+#load the package
+```{r}
+library("foreign")
+```
+
+#read THE imputed and pantheria table
+```{r}
+imputed<-read.csv("C:/Users/huangt/Downloads/imputedwithpeakwithmeanwithmeanenv.csv",header=T)
+pantheria<-read.csv("C:/Users/huangt/Documents/MammalEcoregion/2019/upload/PanTHERIA_1-0_WR05_Aug2008.csv",header=T
+                    #,sep="\t"
+                    )
+pantheria$MSW05_Binomial<-gsub(" ","_",pantheria$MSW05_Binomial)
+PanTHERIA_IUCN_translation_Rodentia_Soricomorpha<-read.csv("C:/Users/huangt/Documents/PanTHERIA_IUCN_translation_Rodentia_Soricomorpha.csv")
+
+PanTHERIA_IUCN_translation_Rodentia_Soricomorpha$MSW05_Binomial<-gsub(" ","_",PanTHERIA_IUCN_translation_Rodentia_Soricomorpha$MSW05_Binomial)
+
+imputed_IUCN<-merge(imputed,PanTHERIA_IUCN_translation_Rodentia_Soricomorpha,by.x= "species",by.y="MSW05_Binomial")
+dim(imputed)
+dim(imputed[imputed$species%in%pantheria$MSW05_Binomial ,])
+dim(imputed_IUCN)
+as.data.frame(table(imputed_IUCN$IUCN_binomial))
+#82 species don't have IUCN ranges
+write.csv(imputed_IUCN[,c("species","IUCN_binomial")],file="C:/Users/huangt/Documents/imputed_IUCN.csv")
+```
+
+#C:\Users\huangt\Documents\bat_virus\TERRESTRIAL_MAMMALS_201907
+#join in arcgis
+#C:\Users\huangt\Documents\imputed_IUCN_D.shp DISSOLVED BY COL SPECIES
+#CREATE AN ECOREGION MATRIX
+```{r}
+eco_matrix<-read.dbf("C:/Users/huangt/Documents/MammalEcoregion/table/tnc_terr_ecoregions.dbf")
+
+l<-length(eco_matrix$ECO_NAME)
+matrix(l,l)
+
+d<-diag(x = 1, 
+     #nrow
+    l, 
+     #ncol
+     l, 
+     names = TRUE)
+d
+rownames(d)<-eco_matrix$ECO_NAME
+colnames(d)<-eco_matrix$ECO_NAME
+write.csv(d,file="C:/Users/huangt/Documents/d.csv")
+```
+#matrix for $WWF_MHTNAM
+# ```{r}
+# 
+# l2<-length(unique(eco_matrix$WWF_MHTNAM) )
+# matrix(l2,l2)
+# 
+# d2<-diag(x = 1,
+#     l2, 
+#      l2, 
+#      names = TRUE)
+# d2
+# rownames(d2)<-unique(eco_matrix$WWF_MHTNAM)
+# colnames(d2)<-unique(eco_matrix$WWF_MHTNAM)
+# write.csv(d2,file="C:/Users/huangt/Documents/d2.csv")
+# ```
+
+
+```{r}
+eco_rod<-read.dbf("C:/Users/huangt/Documents/eco_w_rod.dbf")
+
+eco_rod$ID2<-paste("e",eco_rod$ID,sep="")
+
+l<-length(eco_rod$ID2)
+
+d2<-diag(x = 1, 
+    l, 
+     l, 
+     names = TRUE)
+rownames(d2)<-eco_rod$ID2
+colnames(d2)<-eco_rod$ID2
+d2<-as.data.frame(d2)
+d2$ID2<-eco_rod$ID
+write.csv(d2,file="C:/Users/huangt/Documents/d4.csv")
+```
+
+#matrix for $WWF_MHTNAM
+```{r}
+#read ecoregion shp dissolved by the col WWF_MHTNAM
+WWF_MHTNAM<-read.dbf("C:/Users/huangt/Documents/WWF_MHTNAM.dbf")
+
+WWF_MHTNAM$WWF_ID <-paste("W",WWF_MHTNAM$WWF_ID ,sep="")
+
+l<-length(WWF_MHTNAM$WWF_ID )
+
+d6<-diag(x = 1, 
+    l, 
+     l, 
+     names = TRUE)
+rownames(d6)<-WWF_MHTNAM$WWF_ID
+colnames(d6)<-WWF_MHTNAM$WWF_ID
+d6<-as.data.frame(d6)
+d6$ID2<- WWF_MHTNAM$WWF_MHTNAM 
+write.csv(d6,file="C:/Users/huangt/Documents/d6.csv")
+```
+
+#fix column names
+```{r}
+rod_eco<-read.dbf("C:/Users/huangt/Documents/rod_eco.dbf")
+colnames(rod_eco)<-c("FID_1","species","Count_","Sum_ECO_ID","Sum_ECO_NU","Sum_CLS_CO","Sum_WWF_MH","Sum_ID",as.character(eco_rod$ECO_NAME),"ID2")
+colnames(rod_eco)
+rod_eco<-rod_eco[,c(2,9:801)]
+colnames(rod_eco)
+```
+
+#C:\Users\huangt\Documents\rod_WWF.shp
+```{r}
+rod_WWF<-read.dbf("C:/Users/huangt/Documents/rod_WWF.dbf")
+colnames(rod_WWF)<-c("FID_1","species","Count_","Sum_WWF_ID",as.character(WWF_MHTNAM$WWF_MHTNAM) )
+colnames(rod_WWF)
+
+```
+
+
+```{r}
+imputed_rod_WWF<-merge(imputed_IUCN,rod_WWF,by.x="species",by.y= "species",all=T )
+write.csv(imputed_rod_WWF,file="C:/Users/huangt/Documents/imputed_rod_WWF.csv")
+```
+
+
+#C:\Users\huangt\Documents\rodent_eco.shp
+```{r}
+rodent_eco<-read.dbf("C:/Users/huangt/Documents/rodent_eco.dbf")
+head(rodent_eco)
+```
+

@@ -10,7 +10,7 @@ output: html_document
 library("foreign")
 ```
 
-#read THE imputed and pantheria table
+#read THE imputed and pantheria table, then merge them
 ```{r}
 imputed<-read.csv("C:/Users/huangt/Downloads/imputedwithpeakwithmeanwithmeanenv.csv",header=T)
 pantheria<-read.csv("C:/Users/huangt/Documents/MammalEcoregion/2019/upload/PanTHERIA_1-0_WR05_Aug2008.csv",header=T
@@ -76,12 +76,11 @@ eco_rod$ID2<-paste("e",eco_rod$ID,sep="")
 l<-length(eco_rod$ID2)
 
 d2<-diag(x = 1, 
-    l, 
-     l, 
-     names = TRUE)
+    l,      l, names = TRUE)
 rownames(d2)<-eco_rod$ID2
 colnames(d2)<-eco_rod$ID2
 d2<-as.data.frame(d2)
+#THE ORIGINAL NAMES
 d2$ID2<-eco_rod$ID
 write.csv(d2,file="C:/Users/huangt/Documents/d4.csv")
 ```
@@ -106,6 +105,19 @@ d6$ID2<- WWF_MHTNAM$WWF_MHTNAM
 write.csv(d6,file="C:/Users/huangt/Documents/d6.csv")
 ```
 
+#realm matrix
+```{r}
+realm<-read.dbf("C:/Users/huangt/Documents/tnc_realm.dbf")
+l<-length(realm$WWF_REALM)
+d9<-diag(x = 1, l, l, names = TRUE)
+rownames(d9)<-realm$WWF_REALM
+colnames(d9)<-realm$WWF_REALM
+d9<-as.data.frame(d9)
+
+d9$ID2<- unique(eco_matrix$WWF_REALM2)
+write.csv(d9,file="C:/Users/huangt/Documents/d9.csv")
+```
+
 #fix column names
 ```{r}
 rod_eco<-read.dbf("C:/Users/huangt/Documents/rod_eco.dbf")
@@ -123,16 +135,28 @@ colnames(rod_WWF)
 
 ```
 
+#C:\Users\huangt\Documents\imputed_realm.shp
+```{r}
+imputed_realm<-read.dbf("C:/Users/huangt/Documents/imputed_realm.dbf")
+colnames(imputed_realm)
+colnames(imputed_realm)<-c("FID_1",   "species", "Count_",as.character(unique(eco_matrix$WWF_REALM2)))
+colnames(imputed_realm)
+```
 
+#merge imputed rodents with ECOZONE
+```{r}
+imputed_ecozone<-merge(imputed_IUCN,imputed_realm,by.x="species",by.y= "species",all=T )
+write.csv(imputed_ecozone,file="C:/Users/huangt/Documents/imputed_ecozone.csv")
+```
+
+#merge imputed rodents with WWF
 ```{r}
 imputed_rod_WWF<-merge(imputed_IUCN,rod_WWF,by.x="species",by.y= "species",all=T )
 write.csv(imputed_rod_WWF,file="C:/Users/huangt/Documents/imputed_rod_WWF.csv")
 ```
-
 
 #C:\Users\huangt\Documents\rodent_eco.shp
 ```{r}
 rodent_eco<-read.dbf("C:/Users/huangt/Documents/rodent_eco.dbf")
 head(rodent_eco)
 ```
-
